@@ -1,39 +1,37 @@
-package com.witer.app.notice;
+package com.winter.app.notice;
 
 import java.util.List;
 
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+import lombok.RequiredArgsConstructor;
 
 @RestController
-@AllArgsConstructor
-@RequestMapping("/notice/**")
+@RequiredArgsConstructor
+@RequestMapping("/notice")
 public class NoticeController {
 
-    private NoticeService noticeService;
+	private final NoticeService noticeService;
 
-    @GetMapping("detail")
-    public NoticeDTOResponseDetail detail() throws Exception {
+	@GetMapping("/detail")
+	public NoticeDTOResponseDetail detail(@RequestParam("id") Long id) throws Exception {
+		return noticeService.detail(id);
+	}
 
-        return noticeService.detail(8L);
-    }
+	@GetMapping("/list")
+	public List<NoticeDTOResponseDTO> list() throws Exception {
+		return noticeService.list();
+	}
 
-    @GetMapping("list")
-    public List<NoticeDTOResponseDTO> list() throws Exception {
-        return noticeService.list();
-    }
-
-    @PostMapping("add")
-    public NoticeDTO add(NoticeDTORequestDTO dto, MultipartFile[] attach) throws Exception {
-        dto.setUsername("user2");
-        return noticeService.add(dto, attach);
-    }
+	@PostMapping("/add")
+	public NoticeDTO add(NoticeDTORequestDTO dto, @RequestParam(value = "attach", required = false) MultipartFile[] attach) throws Exception {
+		dto.setUsername("user2"); 
+		return noticeService.add(dto, attach);
+	}
 
 }
