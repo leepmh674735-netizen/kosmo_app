@@ -15,60 +15,53 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class NoticeService {
 
-    private NoticeRepository noticeRepository;
+	private NoticeRepository noticeRepository;
 
-    public NoticeDTOResponseDetail detail(Long id) throws Exception {
-        Optional<NoticeDTO> result = noticeRepository.findById(id);
-        NoticeDTO noticeDTO = result.orElseThrow();
+	public NoticeDTOResponseDetail detail(Long id) throws Exception {
+		Optional<NoticeDTO> result = noticeRepository.findById(id);
+		NoticeDTO noticeDTO = result.orElseThrow();
 
-        List<NoticeFileDetailDTO> ar = new ArrayList<>();
+		List<NoticeFileDetailDTO> ar = new ArrayList<>();
 
-        for (NoticeFileDTO f : noticeDTO.getAttaches()) {
-            NoticeFileDetailDTO detailDTO = new NoticeFileDetailDTO();
-            detailDTO.setOriginalFileName(f.getOriginalFileName());
-            detailDTO.setStoreFileName(f.getStoreFileName());
-            ar.add(detailDTO);
-        }
+		for (NoticeFileDTO f : noticeDTO.getAttaches()) {
+			NoticeFileDetailDTO detailDTO = new NoticeFileDetailDTO();
+			detailDTO.setOriginalFileName(f.getOriginalFileName());
+			detailDTO.setStoreFileName(f.getStoreFileName());
+			ar.add(detailDTO);
+		}
 
-        NoticeDTOResponseDetail res = new NoticeDTOResponseDetail(
-                noticeDTO.getId(),
-                noticeDTO.getContent(),
-                noticeDTO.getCreatedAt(),
-                noticeDTO.isPinned(),
-                noticeDTO.getTitle(),
-                noticeDTO.getUpdatedAt(),
-                noticeDTO.getMemberDTO().getUsername(),
-                noticeDTO.getViews(),
-                ar);
+		NoticeDTOResponseDetail res = new NoticeDTOResponseDetail(noticeDTO.getId(), noticeDTO.getContent(),
+				noticeDTO.getCreatedAt(), noticeDTO.isPinned(), noticeDTO.getTitle(), noticeDTO.getUpdatedAt(),
+				noticeDTO.getMemberDTO().getUsername(), noticeDTO.getViews(), ar);
 
-        return res;
-    }
+		return res;
+	}
 
-    public NoticeDTO add(NoticeDTORequestDTO n, MultipartFile[] attach) throws Exception {
-        NoticeDTO noticeDTO = new NoticeDTO();
-        noticeDTO.setTitle(n.getTitle());
-        noticeDTO.setContent(n.getContent());
-        MemberDTO memberDTO = new MemberDTO();
-        memberDTO.setUsername(n.getUsername());
-        noticeDTO.setMemberDTO(memberDTO);
+	public NoticeDTO add(NoticeDTORequestDTO n, MultipartFile[] attach) throws Exception {
+		NoticeDTO noticeDTO = new NoticeDTO();
+		noticeDTO.setTitle(n.getTitle());
+		noticeDTO.setContent(n.getContent());
+		MemberDTO memberDTO = new MemberDTO();
+		memberDTO.setUsername(n.getUsername());
+		noticeDTO.setMemberDTO(memberDTO);
 
-        noticeDTO = noticeRepository.save(noticeDTO);
+		noticeDTO = noticeRepository.save(noticeDTO);
 
-        // File을 HDD에 저장하고, FileTable에 Insert
+		// File을 HDD에 저장하고, FileTable에 Insert
 
-        return noticeDTO;
-    }
+		return noticeDTO;
+	}
 
-    public List<NoticeDTOResponseDTO> list() throws Exception {
-        List<NoticeDTO> ar = noticeRepository.findAll();
-        List<NoticeDTOResponseDTO> list = new ArrayList<>();
-        for (NoticeDTO n : ar) {
-            NoticeDTOResponseDTO nr = new NoticeDTOResponseDTO(n.getId(), n.getMemberDTO().getUsername(), n.getTitle(),
-                    n.getViews(), n.getCreatedAt());
-            list.add(nr);
-        }
+	public List<NoticeDTOResponseDTO> list() throws Exception {
+		List<NoticeDTO> ar = noticeRepository.findAll();
+		List<NoticeDTOResponseDTO> list = new ArrayList<>();
+		for (NoticeDTO n : ar) {
+			NoticeDTOResponseDTO nr = new NoticeDTOResponseDTO(n.getId(), n.getMemberDTO().getUsername(), n.getTitle(),
+					n.getViews(), n.getCreatedAt());
+			list.add(nr);
+		}
 
-        return list;
-    }
+		return list;
+	}
 
 }
