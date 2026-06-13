@@ -1,47 +1,49 @@
 package com.winter.app.notice;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.winter.app.members.MemberDTO;
 
-import lombok.RequiredArgsConstructor;
-
 @Service
-@RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class NoticeService {
 
 	private final NoticeRepository noticeRepository;
 
-	public NoticeDTOResponseDetail detail(Long id) throws Exception {
-		NoticeDTO noticeDTO = noticeRepository.findById(id)
-				.orElseThrow(() -> new IllegalArgumentException("해당 공지사항이 존재하지 않습니다. ID: " + id));
+	public NoticeService(NoticeRepository noticeRepository) {
+		this.noticeRepository = noticeRepository;
+	}
 
-		List<NoticeFileDetailDTO> ar = noticeDTO.getAttaches().stream().map(f -> {
+	public NoticeDTOResponseDetail detail(Long id) throws Exception {
+		Optional<NoticeDTO> result = noticeRepository.findById(id);
+		NoticeDTO noticeDTO = result.orElseThrow();
+
+		List<NoticeFileDetailDTO> ar = new ArrayList<>();
+
+		for (NoticeFileDTO f : noticeDTO.getAttaches()) {
 			NoticeFileDetailDTO detailDTO = new NoticeFileDetailDTO();
 			detailDTO.setOriginalFileName(f.getOriginalFileName());
 			detailDTO.setStoreFileName(f.getStoreFileName());
-			return detailDTO;
-		}).collect(Collectors.toList());
+			ar.add(detailDTO);
+		}
 
-		return new NoticeDTOResponseDetail(
-				noticeDTO.getId(),
+		NoticeDTOResponseDetail res = new NoticeDTOResponseDetail(
+				noticeDTO.getId(), 
 				noticeDTO.getContent(),
-				noticeDTO.getCreatedAt(),
+				noticeDTO.getCreatedAt(), 
 				noticeDTO.isPinned(), 
 				noticeDTO.getTitle(), 
 				noticeDTO.getUpdatedAt(),
-				noticeDTO.getMemberDTO().getUsername(),
 				noticeDTO.getViews(), 
 				ar);
+
+		return res;
 	}
 
-	@Transactional
 	public NoticeDTO add(NoticeDTORequestDTO n, MultipartFile[] attach) throws Exception {
 		NoticeDTO noticeDTO = new NoticeDTO();
 		noticeDTO.setTitle(n.getTitle());
@@ -53,27 +55,25 @@ public class NoticeService {
 
 		noticeDTO = noticeRepository.save(noticeDTO);
 
-		if (attach != null) {
-			for (MultipartFile file : attach) {
-				if (!file.isEmpty()) {
-					// 파일 저장 로직 구현부
-				}
-			}
-		}
-
 		return noticeDTO;
 	}
 
 	public List<NoticeDTOResponseDTO> list() throws Exception {
 		List<NoticeDTO> ar = noticeRepository.findAll();
+		List<NoticeDTOResponseDTO> list = new ArrayList<>();
 		
-		return ar.stream().map(n -> new NoticeDTOResponseDTO(
-				n.getId(), 
-				n.getMemberDTO().getUsername(), 
-				n.getTitle(),
-				n.getViews(), 
-				n.getCreatedAt()
-		)).collect(Collectors.toList());
+		for (NoticeDTO n : ar) {
+			NoticeDTOResponseDTO nr = new NoticeDTOResponseDTO(
+					n.getId(), 
+					n.getMemberDTO().getUsername(), 
+					n.getTitle(), 
+					n.getViews(), 
+					n.getCreatedAt()
+			);
+			list.add(nr);
+		}
+		
+		return list;
 	}
 
 }
